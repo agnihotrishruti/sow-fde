@@ -51,3 +51,4 @@ Each push to `main` triggers a new production deployment.
 - `POST /api/generate` — body `{ "transcript": "..." }`
 
 The static app is served from `dist/`; API runs as a Vercel serverless function (`api/index.mjs`).
+# sow-for-fde
