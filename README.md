@@ -53,6 +53,10 @@ No `vercel login`, no GitHub.
 ```env
 VERCEL_TOKEN=your_vercel_token_here
 ANTHROPIC_API_KEY=your_anthropic_key_here
+# First-time / CI: link without opening the dashboard (project must exist or Vercel creates it)
+VERCEL_PROJECT_NAME=sow-for-fde
+# Optional: team slug or id if the project is under a team
+# VERCEL_SCOPE=my-team-slug
 ```
 
 4. Deploy from Terminal:
@@ -61,9 +65,10 @@ ANTHROPIC_API_KEY=your_anthropic_key_here
 cd /path/to/sow-for-fde
 chmod +x scripts/deploy.sh
 ./scripts/deploy.sh
+# or: npm run deploy
 ```
 
-The script deploys to production and syncs `ANTHROPIC_API_KEY` to Vercel. It prints your live URL (e.g. `https://sow-for-fde-….vercel.app`).
+The script **creates `.vercel/project.json` automatically** when it is missing (using `VERCEL_PROJECT_NAME`), then deploys production and syncs `ANTHROPIC_API_KEY` to Vercel. It prints your live URL (e.g. `https://sow-for-fde-….vercel.app`).
 
 ### Option C — Vercel CLI token (manual commands)
 

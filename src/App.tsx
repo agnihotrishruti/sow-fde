@@ -165,7 +165,7 @@ export default function App() {
           ) : (
             <div className="placeholder">
               {loading ? (
-                <p>Calling Claude and structuring four sections…</p>
+                <p>Calling Claude and structuring the requirement document…</p>
               ) : (
                 <p>
                   Generated document appears here (white page, black text). Use{' '}

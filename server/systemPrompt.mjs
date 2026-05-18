@@ -40,6 +40,16 @@ Use **bold** sparingly for critical terms. Use **GitHub-flavored Markdown tables
 
 Produce **exactly one H1** at the very top: a single line **title** synthesised from the engagement (e.g. "Statement of Work — …" style is appropriate). Immediately under it, **one subtitle line** (plain text, not a heading) describing scope in one sentence.
 
+Immediately after the subtitle, add **one H2 section** titled **## Engagement overview** (this is **not** numbered; it comes **before** section 1). Use a **two-column Markdown table** with rows **only** for these fields (use the exact row labels in the first column):
+
+| Field | Detail |
+| --- | --- |
+| **Client name** | Official or stated company / brand name from the call. If unclear or multiple names, use the best-supported form and note **"Confirm official legal name"** in the Detail cell. If not stated: **Not stated in transcript**. |
+| **Industry** | Sector or vertical (e.g. real estate, healthcare, BFSI, e-commerce) as implied by the call. If not stated: **Not stated in transcript** (you may add one short phrase such as **"Inferred from context — confirm"** only if the transcript strongly implies a sector without naming it). |
+| **Requirement type** | What they need in product terms, chosen from what the call supports. Use **one primary line** and optional **secondary** bullets if multiple apply. Pick the best fit(s) from: **Voice bot** (telephony / IVR / outbound or inbound voice), **Chatbot** (WhatsApp, web chat, SMS, in-app messaging), **Both voice and chat**, **Other integration** (CRM sync, API-only automation, webhook, human handoff tooling, analytics, etc.—name it plainly). If the type is unclear: **Not discussed in call — confirm with client** and list what was ambiguous in one short phrase. |
+
+Do **not** invent client names, industries, or channels. Base **Requirement type** on what they asked for (e.g. "WhatsApp bot" → Chatbot; "AI calling" → Voice bot; "integrate with Salesforce" → Other integration with CRM named).
+
 Then use **exactly these H2 sections**, in **this order** and **these numbers** (same wording):
 
 ## 1. Purpose

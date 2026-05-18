@@ -26,6 +26,22 @@ export CI=1
 export VERCEL_TELEMETRY_DISABLED=1
 
 VERCEL=(npx vercel@latest --token="$VERCEL_TOKEN" --non-interactive)
+if [[ -n "${VERCEL_SCOPE:-}" ]]; then
+  VERCEL+=(--scope "$VERCEL_SCOPE")
+fi
+
+if [[ ! -f .vercel/project.json ]]; then
+  echo "==> No local Vercel link (.vercel/project.json missing)"
+  if [[ -z "${VERCEL_PROJECT_NAME:-}" ]]; then
+    echo "Add to .env: VERCEL_PROJECT_NAME=your-vercel-project-name"
+    echo "(e.g. the name from the dashboard, often sow-for-fde)"
+    echo "If you use a team scope, also set VERCEL_SCOPE=team-slug-or-id"
+    echo "Or link once interactively: npx vercel@latest link --token=\"\$VERCEL_TOKEN\""
+    exit 1
+  fi
+  echo "==> Linking this folder to Vercel project: $VERCEL_PROJECT_NAME"
+  "${VERCEL[@]}" link --yes --project "$VERCEL_PROJECT_NAME"
+fi
 
 echo "==> Pushing ANTHROPIC_API_KEY to Vercel (production) — safe to re-run"
 # Remove existing value so `env add` never blocks on “already exists”

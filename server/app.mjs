@@ -51,7 +51,7 @@ export function createApp() {
         messages: [
           {
             role: 'user',
-            content: `The following is the full sales call transcript (it may be in any language). Generate the four-section Requirement Document per your instructions — **output in English only**.\n\n---\n\n${transcript}`,
+            content: `The following is the full sales call transcript (it may be in any language). Generate the full requirement document per your instructions (including **Engagement overview** after the title) — **output in English only**.\n\n---\n\n${transcript}`,
           },
         ],
       });
