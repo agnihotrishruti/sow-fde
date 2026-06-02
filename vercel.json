@@ -4,6 +4,9 @@
   "functions": {
     "api/generate.mjs": {
       "maxDuration": 60
+    },
+    "api/feasibility.mjs": {
+      "maxDuration": 60
     }
   },
   "rewrites": [

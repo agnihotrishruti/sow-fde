@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import Anthropic from '@anthropic-ai/sdk';
+import { runFeasibilityStudy } from './feasibilityHandler.mjs';
 import { SYSTEM_PROMPT } from './systemPrompt.mjs';
 
 /** Shared Express app (used by standalone `server/index.mjs` and Vite dev middleware). */
@@ -69,6 +70,40 @@ export function createApp() {
       const detail = err?.message ?? String(err);
       res.status(status >= 400 && status < 600 ? status : 500).json({
         error: 'Generation failed',
+        detail,
+      });
+    }
+  });
+
+  app.post('/api/feasibility', async (req, res) => {
+    const botType =
+      typeof req.body?.botType === 'string' ? req.body.botType.trim() : 'voice_bot';
+    const requirement =
+      typeof req.body?.requirement === 'string' ? req.body.requirement.trim() : '';
+
+    if (!requirement) {
+      res.status(400).json({
+        error: 'Missing requirement',
+        detail: 'Send JSON { "requirement": "...", "botType": "voice_bot" }.',
+      });
+      return;
+    }
+    if (requirement.length < 80) {
+      res.status(400).json({
+        error: 'Requirement too short',
+        detail: 'Paste a meaningful requirement or transcript (at least ~80 characters).',
+      });
+      return;
+    }
+
+    try {
+      const result = await runFeasibilityStudy({ requirement, botType });
+      res.json(result);
+    } catch (err) {
+      const status = err?.status ?? 500;
+      const detail = err?.message ?? String(err);
+      res.status(status >= 400 && status < 600 ? status : 500).json({
+        error: 'Feasibility check failed',
         detail,
       });
     }
