@@ -11,9 +11,9 @@ import {
 type BotType = 'voice_bot' | 'chat_bot';
 type ApiError = { error: string; detail?: string };
 
-const BOT_OPTIONS: { value: BotType; label: string; disabled?: boolean }[] = [
+const BOT_OPTIONS: { value: BotType; label: string }[] = [
   { value: 'voice_bot', label: 'Voice bot' },
-  { value: 'chat_bot', label: 'Chat bot', disabled: true },
+  { value: 'chat_bot', label: 'Chat bot (WhatsApp)' },
 ];
 
 function verdictClass(v: FeasibilityVerdict): string {
@@ -44,11 +44,6 @@ export default function FeasibilityStudy() {
   const reportHtml = useMemo(() => (reportMd ? markdownToSafeHtml(reportMd) : ''), [reportMd]);
 
   const runStudy = useCallback(async () => {
-    if (botType === 'chat_bot') {
-      setErr('Chat bot feasibility is not enabled yet. Select Voice bot.');
-      return;
-    }
-
     setErr(null);
     setLoading(true);
     setReportMd('');
@@ -85,9 +80,9 @@ export default function FeasibilityStudy() {
         <p className="eyebrow">Pre-sales delivery check</p>
         <h1>Feasibility study</h1>
         <p className="lede">
-          Assess a <strong>voice bot</strong> requirement against the MyOperator{' '}
-          <strong>capability registry</strong> (platform limits, not past projects). Written for sales:
-          plain English, with <strong>Feasible</strong>, <strong>Partially Feasible</strong>, or{' '}
+          Assess a <strong>voice bot</strong> or <strong>WhatsApp chatbot</strong> requirement against the
+          MyOperator <strong>capability registry</strong> (platform limits, not past projects). Written for
+          sales: plain English, with <strong>Feasible</strong>, <strong>Partially Feasible</strong>, or{' '}
           <strong>Not Feasible</strong>.
         </p>
       </header>
@@ -114,9 +109,8 @@ export default function FeasibilityStudy() {
             onChange={(e) => setBotType(e.target.value as BotType)}
           >
             {BOT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+              <option key={opt.value} value={opt.value}>
                 {opt.label}
-                {opt.disabled ? ' (coming soon)' : ''}
               </option>
             ))}
           </select>
@@ -134,7 +128,7 @@ export default function FeasibilityStudy() {
               type="button"
               className="primary"
               onClick={runStudy}
-              disabled={loading || botType === 'chat_bot'}
+              disabled={loading}
             >
               {loading ? 'Assessing…' : 'Run feasibility study'}
             </button>
@@ -165,11 +159,14 @@ export default function FeasibilityStudy() {
           ) : (
             <div className="placeholder">
               {loading ? (
-                <p>Assessing against the MyOperator capability registry…</p>
+                <p>
+                  Assessing against the MyOperator{' '}
+                  {botType === 'chat_bot' ? 'WhatsApp chatbot' : 'voice bot'} capability registry…
+                </p>
               ) : (
                 <p>
-                  Report includes verdict, reasoning, feature breakdown, sales discovery items, and what the
-                  bot vs client systems must do. Use <strong>Copy for Google Docs</strong> when ready.
+                  Choose <strong>Voice bot</strong> or <strong>Chat bot</strong>, paste the requirement, then
+                  run the study. Use <strong>Copy for Google Docs</strong> when ready.
                 </p>
               )}
             </div>

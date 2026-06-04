@@ -84,7 +84,7 @@ export function createApp() {
     if (!requirement) {
       res.status(400).json({
         error: 'Missing requirement',
-        detail: 'Send JSON { "requirement": "...", "botType": "voice_bot" }.',
+        detail: 'Send JSON { "requirement": "...", "botType": "voice_bot" | "chat_bot" }.',
       });
       return;
     }
