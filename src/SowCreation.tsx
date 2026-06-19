@@ -9,6 +9,7 @@ export default function SowCreation() {
   const [documentMd, setDocumentMd] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const docHtml = useMemo(
     () => (documentMd ? markdownToSafeHtml(documentMd) : ''),
@@ -17,10 +18,15 @@ export default function SowCreation() {
 
   const generate = useCallback(async () => {
     setErr(null);
+    setNotice(null);
     setLoading(true);
     setDocumentMd('');
     try {
-      const result = await postJson<{ document?: string }>('/api/generate', { transcript });
+      const result = await postJson<{
+        document?: string;
+        inputTruncated?: boolean;
+        detail?: string;
+      }>('/api/generate', { transcript });
       if (!result.ok) {
         setErr(result.detail ? `${result.error}: ${result.detail}` : result.error);
         return;
@@ -28,6 +34,12 @@ export default function SowCreation() {
       if (!result.data.document) {
         setErr('No document in response.');
         return;
+      }
+      if (result.data.inputTruncated) {
+        setNotice(
+          result.data.detail ??
+            'Your transcript was very long. We used the beginning and end only — consider pasting a shorter excerpt next time.',
+        );
       }
       setDocumentMd(result.data.document);
     } catch (e) {
@@ -60,9 +72,16 @@ export default function SowCreation() {
           <div className="panel-head">
             <h2 id="transcript-label">Call transcript</h2>
             <span className="hint">
-              Any language is fine for the transcript; the generated document is always in English.
+              Any language is fine; output is always English. Very long transcripts are trimmed automatically
+              (~35k characters max). For best results, paste the most relevant 15–20 minutes of the call.
             </span>
           </div>
+          {transcript.length > 0 ? (
+            <p className="input-meta" aria-live="polite">
+              {transcript.length.toLocaleString()} characters
+              {transcript.length > 35000 ? ' — will be trimmed before generation' : ''}
+            </p>
+          ) : null}
           <textarea
             className="transcript"
             value={transcript}
@@ -76,6 +95,11 @@ export default function SowCreation() {
               {loading ? 'Generating…' : 'Generate requirement doc'}
             </button>
           </div>
+          {notice && (
+            <p className="notice" role="status">
+              {notice}
+            </p>
+          )}
           {err && (
             <p className="error" role="alert">
               {err}
@@ -99,7 +123,7 @@ export default function SowCreation() {
           ) : (
             <div className="placeholder">
               {loading ? (
-                <p>Calling Claude and structuring the requirement document…</p>
+                <p>Generating your document — this usually takes 30–90 seconds…</p>
               ) : (
                 <p>
                   Generated document appears here. Use <strong>Copy for Google Docs</strong> to paste into a

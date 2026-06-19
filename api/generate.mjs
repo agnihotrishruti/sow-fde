@@ -8,5 +8,5 @@ const app = createApp();
 export default createVercelExpressHandler(app);
 
 export const config = {
-  maxDuration: 60,
+  maxDuration: 300,
 };

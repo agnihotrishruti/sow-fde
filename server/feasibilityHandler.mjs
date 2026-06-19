@@ -5,7 +5,12 @@ import { buildFeasibilitySystemPrompt } from './feasibilityPrompt.mjs';
 const MODEL = getAnthropicModel();
 const VALID_BOT_TYPES = new Set(['voice_bot', 'chat_bot']);
 
-export async function runFeasibilityStudy({ requirement, botType }) {
+export async function runFeasibilityStudy({
+  requirement,
+  botType,
+  inputTruncated = false,
+  originalInputLength,
+}) {
   if (!VALID_BOT_TYPES.has(botType)) {
     const err = new Error('Invalid botType. Use voice_bot or chat_bot.');
     err.status = 400;
@@ -34,12 +39,16 @@ export async function runFeasibilityStudy({ requirement, botType }) {
 
   const msg = await anthropic.messages.create({
     model: MODEL,
-    max_tokens: 8192,
+    max_tokens: 4096,
     system,
     messages: [
       {
         role: 'user',
-        content: `Now analyse the requirement provided by the user (may be in any language; respond in English):
+        content: `Now analyse the requirement provided by the user (may be in any language; respond in English).${
+          inputTruncated
+            ? ' Note: the source text was shortened (middle removed) due to length — assess from what is provided and note gaps under Requirements for Sales.'
+            : ''
+        }
 
 ---
 
@@ -56,5 +65,18 @@ ${requirement}`,
     throw err;
   }
 
-  return { report, model: msg.model, usage: msg.usage, botType };
+  return {
+    report,
+    model: msg.model,
+    usage: msg.usage,
+    botType,
+    ...(inputTruncated
+      ? {
+          inputTruncated: true,
+          originalInputLength,
+          detail:
+            'Requirement text was very long; only the beginning and end were sent to the model.',
+        }
+      : {}),
+  };
 }

@@ -35,6 +35,7 @@ export default function FeasibilityStudy() {
   const [reportMd, setReportMd] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const verdict = useMemo(
     () => (reportMd ? parseFeasibilityVerdict(reportMd) : 'unknown'),
@@ -45,10 +46,15 @@ export default function FeasibilityStudy() {
 
   const runStudy = useCallback(async () => {
     setErr(null);
+    setNotice(null);
     setLoading(true);
     setReportMd('');
     try {
-      const result = await postJson<{ report?: string }>('/api/feasibility', { requirement, botType });
+      const result = await postJson<{
+        report?: string;
+        inputTruncated?: boolean;
+        detail?: string;
+      }>('/api/feasibility', { requirement, botType });
       if (!result.ok) {
         setErr(result.detail ? `${result.error}: ${result.detail}` : result.error);
         return;
@@ -56,6 +62,12 @@ export default function FeasibilityStudy() {
       if (!result.data.report) {
         setErr('No report in response.');
         return;
+      }
+      if (result.data.inputTruncated) {
+        setNotice(
+          result.data.detail ??
+            'Your requirement was very long. We used the beginning and end only — paste a shorter summary for best results.',
+        );
       }
       setReportMd(result.data.report);
     } catch (e) {
@@ -89,10 +101,15 @@ export default function FeasibilityStudy() {
           <div className="panel-head">
             <h2 id="feasibility-input-label">Requirement</h2>
             <span className="hint">
-              Paste a transcript, email, or brief. We judge platform capability only—no project names in the
-              report.
+              Paste a transcript, email, or brief. Long text is trimmed automatically (~25k characters max).
             </span>
           </div>
+          {requirement.length > 0 ? (
+            <p className="input-meta" aria-live="polite">
+              {requirement.length.toLocaleString()} characters
+              {requirement.length > 25000 ? ' — will be trimmed before analysis' : ''}
+            </p>
+          ) : null}
 
           <label className="field-label" htmlFor="bot-type">
             Bot type
@@ -128,6 +145,11 @@ export default function FeasibilityStudy() {
               {loading ? 'Assessing…' : 'Run feasibility study'}
             </button>
           </div>
+          {notice && (
+            <p className="notice" role="status">
+              {notice}
+            </p>
+          )}
           {err && (
             <p className="error" role="alert">
               {err}
@@ -156,7 +178,8 @@ export default function FeasibilityStudy() {
               {loading ? (
                 <p>
                   Assessing against the MyOperator{' '}
-                  {botType === 'chat_bot' ? 'WhatsApp chatbot' : 'voice bot'} capability registry…
+                  {botType === 'chat_bot' ? 'WhatsApp chatbot' : 'voice bot'} capability registry (30–60
+                  seconds)…
                 </p>
               ) : (
                 <p>

@@ -3,6 +3,7 @@ import cors from 'cors';
 import Anthropic from '@anthropic-ai/sdk';
 import { runFeasibilityStudy } from './feasibilityHandler.mjs';
 import { getAnthropicModel } from './anthropicModel.mjs';
+import { MAX_REQUIREMENT_CHARS, MAX_TRANSCRIPT_CHARS, prepareLongText } from './prepareLongText.mjs';
 import { SYSTEM_PROMPT } from './systemPrompt.mjs';
 
 /** Shared Express app (used by standalone `server/index.mjs` and Vite dev middleware). */
@@ -51,17 +52,23 @@ export function createApp() {
       return;
     }
 
+    const prepared = prepareLongText(transcript, MAX_TRANSCRIPT_CHARS);
+
     const anthropic = new Anthropic({ apiKey });
 
     try {
       const msg = await anthropic.messages.create({
         model: MODEL,
-        max_tokens: 16384,
+        max_tokens: 8192,
         system: SYSTEM_PROMPT,
         messages: [
           {
             role: 'user',
-            content: `The following is the full sales call transcript (it may be in any language). Generate the full requirement document per your instructions (including **Engagement overview** after the title) — **output in English only**.\n\n---\n\n${transcript}`,
+            content: `The following is the sales call transcript (it may be in any language). Generate the full requirement document per your instructions (including **Engagement overview** after the title) — **output in English only**. Keep sections concise but complete; do not skip required headings.${
+              prepared.truncated
+                ? ' Note: the transcript was shortened (middle section removed) due to length — extract from what is provided and flag gaps in section 12.'
+                : ''
+            }\n\n---\n\n${prepared.text}`,
           },
         ],
       });
@@ -73,7 +80,19 @@ export function createApp() {
         return;
       }
 
-      res.json({ document, model: msg.model, usage: msg.usage });
+      res.json({
+        document,
+        model: msg.model,
+        usage: msg.usage,
+        ...(prepared.truncated
+          ? {
+              inputTruncated: true,
+              originalInputLength: prepared.originalLength,
+              detail:
+                'Transcript was very long; only the beginning and end were sent to the model. For best results, paste a shorter excerpt or split the call.',
+            }
+          : {}),
+      });
     } catch (err) {
       const status = err?.status ?? 500;
       const detail = err?.message ?? String(err);
@@ -105,8 +124,15 @@ export function createApp() {
       return;
     }
 
+    const prepared = prepareLongText(requirement, MAX_REQUIREMENT_CHARS);
+
     try {
-      const result = await runFeasibilityStudy({ requirement, botType });
+      const result = await runFeasibilityStudy({
+        requirement: prepared.text,
+        botType,
+        inputTruncated: prepared.truncated,
+        originalInputLength: prepared.originalLength,
+      });
       res.json(result);
     } catch (err) {
       const status = err?.status ?? 500;
