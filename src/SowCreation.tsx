@@ -1,9 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import CopyForGoogleDocsButton from './CopyForGoogleDocsButton';
 import GoogleDocsGuide from './GoogleDocsGuide';
+import { postJson } from './postJson';
 import { markdownToSafeHtml } from './markdownHtml';
-
-type ApiError = { error: string; detail?: string };
 
 export default function SowCreation() {
   const [transcript, setTranscript] = useState('');
@@ -21,21 +20,16 @@ export default function SowCreation() {
     setLoading(true);
     setDocumentMd('');
     try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript }),
-      });
-      const data = (await res.json()) as { document?: string } & ApiError;
-      if (!res.ok) {
-        setErr(data.detail ?? data.error ?? `Request failed (${res.status})`);
+      const result = await postJson<{ document?: string }>('/api/generate', { transcript });
+      if (!result.ok) {
+        setErr(result.detail ? `${result.error}: ${result.detail}` : result.error);
         return;
       }
-      if (!data.document) {
+      if (!result.data.document) {
         setErr('No document in response.');
         return;
       }
-      setDocumentMd(data.document);
+      setDocumentMd(result.data.document);
     } catch (e) {
       setErr(
         e instanceof Error

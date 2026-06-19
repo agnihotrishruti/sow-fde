@@ -13,6 +13,14 @@ export function createApp() {
   app.use(cors({ origin: true }));
   app.use(express.json({ limit: '2mb' }));
 
+  app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && 'body' in err) {
+      res.status(400).json({ error: 'Invalid JSON', detail: 'Request body must be valid JSON.' });
+      return;
+    }
+    next(err);
+  });
+
   app.get('/api/health', (_req, res) => {
     const keyConfigured = Boolean(process.env.ANTHROPIC_API_KEY?.trim());
     res.json({ ok: true, model: MODEL, anthropicKeyConfigured: keyConfigured });
@@ -108,6 +116,14 @@ export function createApp() {
         detail,
       });
     }
+  });
+
+  app.use((err, _req, res, _next) => {
+    if (res.headersSent) return;
+    res.status(500).json({
+      error: 'Server error',
+      detail: err instanceof Error ? err.message : String(err),
+    });
   });
 
   return app;

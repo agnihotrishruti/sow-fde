@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import CopyForGoogleDocsButton from './CopyForGoogleDocsButton';
 import GoogleDocsGuide from './GoogleDocsGuide';
+import { postJson } from './postJson';
 import { markdownToSafeHtml } from './markdownHtml';
 import {
   parseFeasibilityVerdict,
@@ -9,7 +10,6 @@ import {
 } from './parseFeasibilityVerdict';
 
 type BotType = 'voice_bot' | 'chat_bot';
-type ApiError = { error: string; detail?: string };
 
 const BOT_OPTIONS: { value: BotType; label: string }[] = [
   { value: 'voice_bot', label: 'Voice bot' },
@@ -48,21 +48,16 @@ export default function FeasibilityStudy() {
     setLoading(true);
     setReportMd('');
     try {
-      const res = await fetch('/api/feasibility', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requirement, botType }),
-      });
-      const data = (await res.json()) as { report?: string } & ApiError;
-      if (!res.ok) {
-        setErr(data.detail ?? data.error ?? `Request failed (${res.status})`);
+      const result = await postJson<{ report?: string }>('/api/feasibility', { requirement, botType });
+      if (!result.ok) {
+        setErr(result.detail ? `${result.error}: ${result.detail}` : result.error);
         return;
       }
-      if (!data.report) {
+      if (!result.data.report) {
         setErr('No report in response.');
         return;
       }
-      setReportMd(data.report);
+      setReportMd(result.data.report);
     } catch (e) {
       setErr(
         e instanceof Error
