@@ -1,7 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { getAnthropicModel } from './anthropicModel.mjs';
 import { buildFeasibilitySystemPrompt } from './feasibilityPrompt.mjs';
 
-const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514';
+const MODEL = getAnthropicModel();
 const VALID_BOT_TYPES = new Set(['voice_bot', 'chat_bot']);
 
 export async function runFeasibilityStudy({ requirement, botType }) {

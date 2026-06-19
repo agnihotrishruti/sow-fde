@@ -2,12 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import Anthropic from '@anthropic-ai/sdk';
 import { runFeasibilityStudy } from './feasibilityHandler.mjs';
+import { getAnthropicModel } from './anthropicModel.mjs';
 import { SYSTEM_PROMPT } from './systemPrompt.mjs';
 
 /** Shared Express app (used by standalone `server/index.mjs` and Vite dev middleware). */
 export function createApp() {
   const app = express();
-  const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514';
+  const MODEL = getAnthropicModel();
 
   app.use(cors({ origin: true }));
   app.use(express.json({ limit: '2mb' }));

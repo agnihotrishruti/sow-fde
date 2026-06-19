@@ -48,10 +48,10 @@ echo "==> Pushing ANTHROPIC_API_KEY to Vercel (production) — safe to re-run"
 "${VERCEL[@]}" env remove ANTHROPIC_API_KEY production -y 2>/dev/null || true
 printf '%s' "$ANTHROPIC_API_KEY" | "${VERCEL[@]}" env add ANTHROPIC_API_KEY production
 
-if [[ -n "${ANTHROPIC_MODEL:-}" ]]; then
-  "${VERCEL[@]}" env remove ANTHROPIC_MODEL production -y 2>/dev/null || true
-  printf '%s' "$ANTHROPIC_MODEL" | "${VERCEL[@]}" env add ANTHROPIC_MODEL production
-fi
+ANTHROPIC_MODEL="${ANTHROPIC_MODEL:-claude-sonnet-4-6}"
+echo "==> Pushing ANTHROPIC_MODEL to Vercel (production): $ANTHROPIC_MODEL"
+"${VERCEL[@]}" env remove ANTHROPIC_MODEL production -y 2>/dev/null || true
+printf '%s' "$ANTHROPIC_MODEL" | "${VERCEL[@]}" env add ANTHROPIC_MODEL production
 
 echo ""
 echo "==> Deploying production (this can take 2–6 minutes; URL may appear before “Building” finishes)"
